@@ -1,5 +1,6 @@
 import {
 	type APIApplicationCommandInteraction,
+	type APIChatInputApplicationCommandInteraction,
 	type APIInteraction,
 	type APIMessageApplicationCommandInteraction,
 	type APIPingInteraction,
@@ -17,6 +18,12 @@ export function isPing(
 	interaction: APIInteraction,
 ): interaction is APIPingInteraction {
 	return interaction.type === InteractionType.Ping;
+}
+
+export function isChatInputCommand(
+	command: APIApplicationCommandInteraction,
+): command is APIChatInputApplicationCommandInteraction {
+	return command.data.type === ApplicationCommandType.ChatInput;
 }
 
 export function isMessageContextMenuCommand(
