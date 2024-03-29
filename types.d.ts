@@ -53,6 +53,7 @@ type ContextMenuCommandData<
 };
 
 export interface MessageReportOpen {
+	isClosed: boolean;
 	authorId: Snowflake;
 	reportMessageId: Snowflake;
 	voters?: Snowflake[];
@@ -64,6 +65,12 @@ export interface MessageReportClose extends MessageReportOpen {
 }
 
 export type MessageReport = MessageReportClose | MessageReportOpen;
+
+export interface RawFile {
+	name: string;
+	contentType: string;
+	data: Uint8Array;
+}
 
 export type ValidationResult =
 	| { valid: false; error: string }
