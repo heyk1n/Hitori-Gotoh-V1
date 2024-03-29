@@ -3,6 +3,7 @@
   "packages": {
     "specifiers": {
       "npm:@discordjs/core@1.1.1": "npm:@discordjs/core@1.1.1",
+      "npm:@discordjs/formatters@0.3.3": "npm:@discordjs/formatters@0.3.3",
       "npm:@discordjs/rest@2.2.0": "npm:@discordjs/rest@2.2.0",
       "npm:tweetnacl@1.0.3": "npm:tweetnacl@1.0.3"
     },
@@ -19,6 +20,12 @@
           "@discordjs/ws": "@discordjs/ws@1.0.2",
           "@sapphire/snowflake": "@sapphire/snowflake@3.5.3",
           "@vladfrangu/async_event_emitter": "@vladfrangu/async_event_emitter@2.2.4",
+          "discord-api-types": "discord-api-types@0.37.61"
+        }
+      },
+      "@discordjs/formatters@0.3.3": {
+        "integrity": "sha512-wTcI1Q5cps1eSGhl6+6AzzZkBBlVrBdc9IUhJbijRgVjCNIIIZPgqnUj3ntFODsHrdbGU8BEG9XmDQmgEEYn3w==",
+        "dependencies": {
           "discord-api-types": "discord-api-types@0.37.61"
         }
       },
@@ -111,6 +118,14 @@
   "remote": {
     "https://deno.land/std@0.219.0/encoding/_util.ts": "beacef316c1255da9bc8e95afb1fa56ed69baef919c88dc06ae6cb7a6103d376",
     "https://deno.land/std@0.219.0/encoding/hex.ts": "e939f50d55be48a1fe42fecaaecdb54353df38e831c47f374be7e6fdbe61510e",
-    "https://deno.land/std@0.219.0/http/status.ts": "ed61b4882af2514a81aefd3245e8df4c47b9a8e54929a903577643d2d1ebf514"
+    "https://deno.land/std@0.219.0/http/status.ts": "ed61b4882af2514a81aefd3245e8df4c47b9a8e54929a903577643d2d1ebf514",
+    "https://deno.land/std@0.219.0/path/_common/assert_path.ts": "dbdd757a465b690b2cc72fc5fb7698c51507dec6bfafce4ca500c46b76ff7bd8",
+    "https://deno.land/std@0.219.0/path/_common/basename.ts": "569744855bc8445f3a56087fd2aed56bdad39da971a8d92b138c9913aecc5fa2",
+    "https://deno.land/std@0.219.0/path/_common/constants.ts": "dc5f8057159f4b48cd304eb3027e42f1148cf4df1fb4240774d3492b5d12ac0c",
+    "https://deno.land/std@0.219.0/path/_common/strip_trailing_separators.ts": "7024a93447efcdcfeaa9339a98fa63ef9d53de363f1fbe9858970f1bba02655a",
+    "https://deno.land/std@0.219.0/path/posix/_util.ts": "1e3937da30f080bfc99fe45d7ed23c47dd8585c5e473b2d771380d3a6937cf9d",
+    "https://deno.land/std@0.219.0/path/posix/basename.ts": "39ee27a29f1f35935d3603ccf01d53f3d6e0c5d4d0f84421e65bd1afeff42843",
+    "https://deno.land/std@0.219.0/url/_strip.ts": "928fe9af16d7c5bf24816d1e90d84bfe702f3e059f9d63509b5a37087e947800",
+    "https://deno.land/std@0.219.0/url/basename.ts": "a2e6ef35d44da3764551cbc61cdd39004c778aaedc7a6c2559e571f018c42daa"
   }
 }

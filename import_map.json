@@ -2,6 +2,7 @@
 	"imports": {
 		"$std/": "https://deno.land/std@0.219.0/",
 		"@discordjs/core": "npm:@discordjs/core@1.1.1/http-only",
+		"@discordjs/formatters": "npm:@discordjs/formatters@0.3.3",
 		"@discordjs/rest": "npm:@discordjs/rest@2.2.0"
 	}
 }

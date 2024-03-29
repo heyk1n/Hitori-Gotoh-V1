@@ -1,4 +1,8 @@
-import type { MessageContextMenu, MessageReport } from "../../types.d.ts";
+import type {
+	MessageContextMenu,
+	MessageReportOpen,
+	RawFile,
+} from "../../types.d.ts";
 import {
 	type API,
 	type APIActionRowComponent,
@@ -13,9 +17,9 @@ import {
 	InteractionResponseType,
 	MessageFlags,
 	MessageType,
-	StickerFormatType,
 } from "@discordjs/core";
-import { getAvatar, snowflakeToDate } from "../../utils/mod.ts";
+import { messageLink } from "@discordjs/formatters";
+import { getAvatar, resolveAttachment } from "../../utils/mod.ts";
 
 const command: MessageContextMenu = {
 	data: {
@@ -34,7 +38,11 @@ const command: MessageContextMenu = {
 			0,
 		)!;
 
-		if (!supportedMessageTypes.includes(message.type)) {
+		if (
+			!supportedMessageTypes.some((supportedType) =>
+				supportedType === message.type
+			)
+		) {
 			const response: APIInteractionResponseChannelMessageWithSource = {
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
@@ -76,14 +84,18 @@ async function reportMessage(
 	kv: Deno.Kv,
 	message: APIMessage,
 ): Promise<void> {
-	const reportChannel = Deno.env.get("DISCORD_REPORT_CHANNEL");
-	if (!reportChannel) {
+	const reportWebhookId = Deno.env.get("DISCORD_REPORT_WEBHOOK_ID");
+	const reportWebhookToken = Deno.env.get(
+		"DISCORD_REPORT_WEBHOOK_TOKEN",
+	);
+
+	if (!reportWebhookId || !reportWebhookToken) {
 		await api.interactions.editReply(
 			interaction.application_id,
 			interaction.token,
 			{
 				content:
-					`Wah.. tempat laporannya belum di setup nih, Beritahu staff atau developer supaya tempat untuk melaporkan pengguna atau pesan disediakan, tengkyew >_`,
+					"Kayaknya moderator belum setup webhook untuk report nya nih 🌸",
 			},
 		);
 	} else {
@@ -94,7 +106,7 @@ async function reportMessage(
 			interaction.guild_id!,
 			message.id,
 		];
-		const { value: reportData } = await kv.get<MessageReport>(reportId);
+		const { value: reportData } = await kv.get<MessageReportOpen>(reportId);
 
 		if (reportData) {
 			await api.interactions.editReply(
@@ -104,10 +116,11 @@ async function reportMessage(
 			);
 		} else {
 			const atomic = kv.atomic();
-			const attachments = [];
-			const timestamp = snowflakeToDate(message.id).toISOString();
-			const messageUrl =
-				`https://discord.com/channels/${interaction.guild_id}/${message.channel_id}/${message.id}`;
+			const messageUrl = messageLink(
+				message.channel_id,
+				message.id,
+				interaction.guild_id!,
+			);
 
 			const row: APIActionRowComponent<APIButtonComponent> = {
 				components: [{
@@ -119,169 +132,50 @@ async function reportMessage(
 				type: ComponentType.ActionRow,
 			};
 
-			for (const attachment of message.attachments) {
-				const response = await fetch(attachment.url);
-				const buffer = await response.arrayBuffer();
-				const data = new Uint8Array(buffer);
+			const files: RawFile[] = [];
 
-				attachments.push({ data, name: attachment.filename });
-			}
-
-			try {
-				const sticker = message.sticker_items?.at(0);
-				if (sticker) {
-					const response = await fetch(
-						api.rest.cdn.sticker(sticker.id),
-					);
-					const stickerData = new Uint8Array(
-						await response.arrayBuffer(),
-					);
-
-					let extension;
-					switch (sticker.format_type) {
-						case StickerFormatType.APNG:
-						case StickerFormatType.PNG: {
-							extension = "png";
-							break;
-						}
-						case StickerFormatType.GIF: {
-							extension = "png";
-							break;
-						}
-						case StickerFormatType.Lottie: {
-							extension = "json";
-							break;
-						}
-					}
-
-					const filename = `${sticker.id}.${extension}`;
-
-					const reportMessage = await api.channels.createMessage(
-						reportChannel,
-						{
-							allowed_mentions: {
-								parse: [],
-							},
-							files: [{ data: stickerData, name: filename }],
-							content: `<@${
-								interaction.member!.user.id
-							}> melaporkan pesan stiker yang dikirim oleh <@${message.author.id}> di <#${interaction.channel.id}>`,
-							embeds: [{
-								color: 0xffffff,
-								author: {
-									name: message.author.username,
-									icon_url: getAvatar(
-										api.rest.cdn,
-										message.author,
-									),
-								},
-								image: {
-									url: `attachment://${filename}`,
-								},
-								timestamp,
-							}],
-							components: [row],
-						},
-					);
-
-					const newReportData: MessageReport = {
-						authorId: interaction.member!.user.id,
-						reportMessageId: reportMessage.id,
-					};
-					atomic.set(reportId, newReportData, {
-						expireIn: reportExpiration,
-					});
-				} else if (
-					message.flags &&
-					((message.flags & MessageFlags.IsVoiceMessage) ==
-						MessageFlags.IsVoiceMessage)
-				) {
-					const reportMessage = await api.channels.createMessage(
-						reportChannel,
-						{
-							allowed_mentions: {
-								parse: [],
-							},
-							files: attachments,
-							content: `<@${
-								interaction.member!.user.id
-							}> melaporkan pesan voice note yang dikirim oleh <@${message.author.id}> di <#${interaction.channel.id}>`,
-							embeds: [{
-								color: 0xffffff,
-								author: {
-									name: message.author.username,
-									icon_url: getAvatar(
-										api.rest.cdn,
-										message.author,
-									),
-								},
-								timestamp,
-							}],
-							components: [row],
-						},
-					);
-
-					const newReportData: MessageReport = {
-						authorId: interaction.member!.user.id,
-						reportMessageId: reportMessage.id,
-					};
-					atomic.set(reportId, newReportData, {
-						expireIn: reportExpiration,
-					});
-				} else {
-					const reportMessage = await api.channels.createMessage(
-						reportChannel,
-						{
-							allowed_mentions: {
-								parse: [],
-							},
-							files: attachments,
-							content: `<@${
-								interaction.member!.user.id
-							}> baru saja melaporkan pesan yang dikirim oleh <@${message.author.id}> di <#${interaction.channel.id}>`,
-							embeds: [{
-								color: 0xffffff,
-								author: {
-									name: message.author.username,
-									icon_url: getAvatar(
-										api.rest.cdn,
-										message.author,
-									),
-								},
-								description: message.content.length >= 1
-									? message.content
-									: `_Pesan ini tidak memiliki teks._`,
-								timestamp,
-							}],
-							components: [row],
-						},
-					);
-
-					const newReportData: MessageReport = {
-						authorId: interaction.member!.user.id,
-						reportMessageId: reportMessage.id,
-					};
-					atomic.set(reportId, newReportData, {
-						expireIn: reportExpiration,
-					});
+			const sticker = message.sticker_items?.at(0);
+			if (sticker) {
+				// TODO(@heyk1n): handle sticker attachment
+				files.push(
+					await resolveAttachment(api.rest.cdn.sticker(sticker.id)),
+				);
+			} else {
+				for (const attachment of message.attachments) {
+					files.push(await resolveAttachment(attachment.url));
 				}
 
-				await atomic.commit();
-				await api.interactions.editReply(
-					interaction.application_id,
-					interaction.token,
+				const reportWebhook = await api.webhooks.execute(
+					reportWebhookId,
+					reportWebhookToken,
 					{
-						content:
-							`Laporan kamu telah dikirim ke tim moderator untuk ditindaklanjuti, (laporan ini akan tersedia sampai 7 hari ke depan)`,
+						content: message.content,
+						files,
+						username: message.author.username,
+						avatar_url: getAvatar(api.rest.cdn, message.author),
+						components: [row],
+						wait: true,
 					},
 				);
-			} catch (_) {
+
+				const newReportData: MessageReportOpen = {
+					isClosed: false,
+					authorId: interaction.member!.user.id,
+					reportMessageId: reportWebhook.id,
+					voters: [],
+				};
+
+				atomic.set(reportId, newReportData, {
+					expireIn: reportExpiration,
+				});
+				await atomic.commit();
+
 				await api.interactions.editReply(
 					interaction.application_id,
 					interaction.token,
 					{
 						content:
-							`Uhm.. bentar, kayaknya ada yg salah deh, coba tanyain developer soal hal ini ya.`,
+							`Laporan kamu telah dikirim ke moderator, terimakasih ya!!`,
 					},
 				);
 			}
