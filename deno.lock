@@ -5,6 +5,7 @@
       "npm:@discordjs/core@1.1.1": "npm:@discordjs/core@1.1.1",
       "npm:@discordjs/formatters@0.3.3": "npm:@discordjs/formatters@0.3.3",
       "npm:@discordjs/rest@2.2.0": "npm:@discordjs/rest@2.2.0",
+      "npm:@discordjs/util@1.0.2": "npm:@discordjs/util@1.0.2",
       "npm:tweetnacl@1.0.3": "npm:tweetnacl@1.0.3"
     },
     "npm": {

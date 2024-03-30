@@ -11,6 +11,7 @@ import {
 	type RESTPostAPIContextMenuApplicationCommandsJSONBody,
 	type Snowflake,
 } from "@discordjs/core";
+import type { Awaitable } from "@discordjs/util";
 
 export interface ICommand<
 	Data extends RESTPostAPIApplicationCommandsJSONBody,
@@ -19,7 +20,7 @@ export interface ICommand<
 	data: Data;
 	execute(
 		options: InteractionExecuteOptions<Interaction>,
-	): Response | Promise<Response>;
+	): Awaitable<Response>;
 }
 
 export interface InteractionExecuteOptions<Interaction extends APIInteraction> {
